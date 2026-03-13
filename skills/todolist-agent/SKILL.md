@@ -31,6 +31,17 @@ Typical uses:
 
 ## Recommended workflow
 
+### Scheduled execution behavior
+
+When invoked by an internal scheduled prompt or cron-triggered agent message:
+
+1. Call the due-check endpoint first
+2. If no tasks are due, finish quietly without verbose output
+3. If tasks are due, process them in priority order
+4. If a task has subtasks, complete unfinished subtasks before marking the parent task done
+5. Record a useful `result` when marking tasks done or failed
+6. Do not send user-facing "nothing happened" messages unless the invoking prompt explicitly asks for a status update
+
 ### Add a simple reminder
 
 1. Create a todo
