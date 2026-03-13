@@ -9,17 +9,20 @@
 ├── README.md
 └── skills/
     └── todolist-agent/
-        └── SKILL.md
+        ├── SKILL.md
+        └── references/
+            └── api.md
 ```
 
 ## 设计原则
 
-这个仓库只保留 **skill 本体**，不混入额外的人类说明文件、脚本模板或后端实现代码。
+这个仓库按 skill 的常见组织方式拆分：
 
 - `README.md`：仓库级说明，面向人
-- `skills/todolist-agent/SKILL.md`：skill 定义，面向 agent
+- `skills/todolist-agent/SKILL.md`：skill 主说明，面向 agent
+- `skills/todolist-agent/references/api.md`：详细 API 参考，按需读取
 
-TodoList 的后端服务不在本仓库内。这个 skill 依赖外部 API 服务与对应环境变量配置。
+这样可以让 `SKILL.md` 保持精简，把重细节放进 `references/`。
 
 ## 安装
 
