@@ -1,39 +1,38 @@
 ---
 name: todolist-agent
-description: Your personal todo list for tracking tasks you need to execute. Create, check, and complete your own todos with subtasks support.
-user-invocable: true
-metadata: {"openclaw": {"requires": {"env": ["TODOLIST_API_URL", "TODOLIST_API_KEY"]}, "emoji": "✅"}}
+description: Manage an agent-owned todo list through a TodoList API, including creating tasks, listing tasks, completing tasks, failing tasks, checking due work, and managing subtasks. Use when the agent needs persistent task tracking, recurring reminders, or multi-step execution planning backed by an external API.
 ---
 
 # Agent TodoList
 
-This is YOUR personal todo list. Use it to track tasks you need to execute yourself. Supports subtasks for complex tasks.
+Use this skill to manage the agent's own todo list through the TodoList API.
 
-## Authentication
+## Required environment
 
-All API calls require the Authorization header:
+Provide these environment variables when enabling the skill:
 
-```
+- `TODOLIST_API_URL`
+- `TODOLIST_API_KEY`
+
+Use this header for all authenticated requests:
+
+```text
 Authorization: Bearer ${TODOLIST_API_KEY}
 Content-Type: application/json
 ```
 
-## Base URL
+Use `${TODOLIST_API_URL}` as the base URL.
 
-`${TODOLIST_API_URL}` (default: http://localhost:8000)
+## Todo operations
 
----
-
-## Todo APIs
-
-### 1. Create Todo
+### Create a todo
 
 **POST** `${TODOLIST_API_URL}/agent/todos`
 
 ```json
 {
-  "title": "Task title (required)",
-  "description": "Execution instructions (optional)",
+  "title": "Task title",
+  "description": "Execution instructions",
   "due_at": "2026-03-07T09:00:00",
   "priority": "normal",
   "repeat_rule": "none"
@@ -41,55 +40,55 @@ Content-Type: application/json
 ```
 
 Fields:
-- `title` (required): Brief task description
-- `description` (optional): How to execute this task
-- `due_at` (optional): ISO 8601 datetime
-- `priority` (optional): `low` | `normal` | `high` | `urgent`
-- `repeat_rule` (optional): `none` | `daily` | `weekly` | `monthly`
+- `title`: required
+- `description`: optional
+- `due_at`: optional ISO 8601 datetime
+- `priority`: optional; `low` | `normal` | `high` | `urgent`
+- `repeat_rule`: optional; `none` | `daily` | `weekly` | `monthly`
 
-### 2. List Todos
+### List todos
 
 **GET** `${TODOLIST_API_URL}/agent/todos?status=pending&due_before=now&priority=high&limit=50`
 
 Query parameters:
-- `status`: `pending` | `done` | `failed` | `all` (default: pending)
+- `status`: `pending` | `done` | `failed` | `all`
 - `due_before`: ISO datetime or `now`
 - `priority`: `low` | `normal` | `high` | `urgent`
-- `limit`: 1-200 (default: 50)
+- `limit`: 1-200
 
-### 3. Check Due Tasks (for periodic checks)
+### Check due todos
 
 **GET** `${TODOLIST_API_URL}/agent/todos/check`
 
-Returns all pending tasks where `due_at <= now`, sorted by priority. Run this every 30 minutes.
+Use this to retrieve pending tasks where `due_at <= now`.
 
-### 4. Get Todo Details
+### Get todo details
 
 **GET** `${TODOLIST_API_URL}/agent/todos/{id}`
 
-### 5. Mark as Done
+### Mark a todo as done
 
 **POST** `${TODOLIST_API_URL}/agent/todos/{id}/done`
 
 ```json
 {
-  "result": "Execution result (optional)"
+  "result": "Execution result"
 }
 ```
 
-Effect: Sets status to "done". If repeat_rule is set, automatically creates next occurrence.
+Use `result` whenever possible. Completing a repeating task may create the next occurrence automatically.
 
-### 6. Mark as Failed
+### Mark a todo as failed
 
 **POST** `${TODOLIST_API_URL}/agent/todos/{id}/fail`
 
 ```json
 {
-  "result": "Error message (optional)"
+  "result": "Error message"
 }
 ```
 
-### 7. Update Todo
+### Update a todo
 
 **PUT** `${TODOLIST_API_URL}/agent/todos/{id}`
 
@@ -104,58 +103,29 @@ Effect: Sets status to "done". If repeat_rule is set, automatically creates next
 }
 ```
 
-All fields optional.
-
-### 8. Delete Todo
+### Delete a todo
 
 **DELETE** `${TODOLIST_API_URL}/agent/todos/{id}`
 
-Response: 204 No Content
+## Subtask operations
 
-### 9. Statistics
-
-**GET** `${TODOLIST_API_URL}/agent/todos/stats`
-
-Response:
-```json
-{
-  "pending": 5,
-  "done": 12,
-  "failed": 1,
-  "overdue": 2,
-  "total": 18
-}
-```
-
----
-
-## Subtask APIs
-
-### 10. List Subtasks
+### List subtasks
 
 **GET** `${TODOLIST_API_URL}/agent/todos/{id}/subtasks`
 
-Response:
-```json
-[
-  {"id": 1, "agent_todo_id": 10, "title": "Collect data", "description": "Gather metrics", "done": false, "order": 0},
-  {"id": 2, "agent_todo_id": 10, "title": "Create slides", "description": null, "done": false, "order": 1}
-]
-```
-
-### 11. Create Subtask
+### Create a subtask
 
 **POST** `${TODOLIST_API_URL}/agent/todos/{id}/subtasks`
 
 ```json
 {
-  "title": "Subtask title (required)",
-  "description": "Instructions (optional)",
+  "title": "Subtask title",
+  "description": "Instructions",
   "order": 0
 }
 ```
 
-### 12. Update Subtask
+### Update a subtask
 
 **PUT** `${TODOLIST_API_URL}/agent/todos/{id}/subtasks/{subtask_id}`
 
@@ -168,93 +138,47 @@ Response:
 }
 ```
 
-All fields optional.
-
-### 13. Mark Subtask as Done
+### Mark a subtask as done
 
 **POST** `${TODOLIST_API_URL}/agent/todos/{id}/subtasks/{subtask_id}/done`
 
-### 14. Delete Subtask
+### Delete a subtask
 
 **DELETE** `${TODOLIST_API_URL}/agent/todos/{id}/subtasks/{subtask_id}`
 
-Response: 204 No Content
+## Recommended workflow
 
----
+### Add a simple reminder
 
-## Usage Workflows
+1. Create a todo with `POST /agent/todos`
+2. Set `due_at` and `repeat_rule` if needed
+3. Confirm to the user that the reminder was recorded
 
-### Simple task — user assigns a reminder:
+### Handle a complex task
 
-```
-User: "Remind me to check emails every day at 9am"
+1. Create the parent todo
+2. Add subtasks for each execution step
+3. Track progress through subtask completion
+4. Mark the parent todo done when all required work is complete
 
-You:
-1. POST /agent/todos
-   Body: {"title": "Remind user to check emails", "description": "Send reminder message", "due_at": "2026-03-07T09:00:00", "repeat_rule": "daily"}
-2. Reply: "✅ Added to my todo list: I'll remind you daily at 9am"
-```
+### Periodically check due work
 
-### Complex task — break into subtasks:
+1. Call `GET /agent/todos/check`
+2. For each due todo, inspect subtasks if present
+3. Execute undone subtasks first
+4. Mark subtasks done as they complete
+5. Mark the parent todo done or failed with a `result`
 
-```
-User: "Prepare the Friday presentation"
+## Best practices
 
-You:
-1. POST /agent/todos
-   Body: {"title": "Prepare Friday presentation", "due_at": "2026-03-13T14:00:00", "priority": "high"}
-   → Returns id: 10
+- Break large tasks into subtasks
+- Record a useful `result` when marking done or failed
+- Prefer explicit priorities for urgent work
+- Use recurring rules for reminders and repeated routines
+- Do not silently ignore failures; mark them failed with context
 
-2. POST /agent/todos/10/subtasks
-   Body: {"title": "Collect data", "description": "Gather this week's metrics", "order": 0}
+## Error handling
 
-3. POST /agent/todos/10/subtasks
-   Body: {"title": "Create slides", "description": "Make PPT with key findings", "order": 1}
-
-4. POST /agent/todos/10/subtasks
-   Body: {"title": "Rehearse", "description": "Dry run the presentation", "order": 2}
-
-5. Reply: "✅ Created task with 3 subtasks. I'll work on them before Friday."
-```
-
-### Periodic check (every 30 minutes):
-
-```
-1. GET /agent/todos/check
-   → Returns due tasks
-
-2. For each task:
-   - If task has subtasks: GET /agent/todos/{id}/subtasks → execute undone ones → POST .../subtasks/{sub_id}/done
-   - If all subtasks done (or no subtasks): execute main task → POST /agent/todos/{id}/done
-   - If error: POST /agent/todos/{id}/fail
-```
-
-### User asks "what are your todos":
-
-```
-1. GET /agent/todos?status=pending
-2. For each todo with subtasks: GET /agent/todos/{id}/subtasks
-3. Present:
-   📋 My todo list:
-   1. 🔴 Prepare Friday presentation [3 subtasks: 1/3 done]
-   2. 🟡 Remind user to check emails [daily] - tomorrow 09:00
-   3. 🟢 Clean up old tasks [low priority]
-```
-
----
-
-## Best Practices
-
-1. **Check periodically**: Run `/agent/todos/check` every 30 minutes
-2. **Record results**: Always include `result` when marking done/failed
-3. **Use subtasks**: Break complex tasks into smaller subtasks
-4. **Set priorities**: Execute high priority tasks first
-5. **Handle failures**: Mark as failed with error message, don't skip silently
-
----
-
-## Error Handling
-
-- **401 Unauthorized**: Invalid or missing API key
-- **404 Not Found**: Todo/subtask doesn't exist or doesn't belong to you
-- **422 Validation Error**: Invalid request body
+- `401 Unauthorized`: API key missing or invalid
+- `404 Not Found`: todo or subtask does not exist or is not accessible
+- `422 Validation Error`: request body is invalid

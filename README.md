@@ -1,42 +1,39 @@
-# Todolist Skill
+# todolist-agent skill
 
-这是从 `TodolistForAgent` 仓库中抽取出来的独立 OpenClaw Skill 仓库。
+一个独立的 OpenClaw skill 仓库，用于给 Agent 提供待办事项管理能力。
 
-当前包含：
-
-- `skills/todolist-agent/SKILL.md` — Skill 定义与接口说明
-- `skills/todolist-agent/README.md` — Skill 使用说明
-
-## 仓库用途
-
-这个仓库只负责 **Skill 部分**，用于让 OpenClaw Agent 拥有自己的待办清单能力。
-
-它依赖一个单独运行的 TodoList API 后端。后端代码仍然来自原始项目（`TodolistForAgent`）中的 `apps/api` 部分。
-
-## 目录结构
+## 仓库结构
 
 ```text
 .
 ├── README.md
-└── skills
-    └── todolist-agent
-        ├── README.md
+└── skills/
+    └── todolist-agent/
         └── SKILL.md
 ```
 
+## 设计原则
+
+这个仓库只保留 **skill 本体**，不混入额外的人类说明文件、脚本模板或后端实现代码。
+
+- `README.md`：仓库级说明，面向人
+- `skills/todolist-agent/SKILL.md`：skill 定义，面向 agent
+
+TodoList 的后端服务不在本仓库内。这个 skill 依赖外部 API 服务与对应环境变量配置。
+
 ## 安装
 
-将 `skills/todolist-agent` 复制到你的 OpenClaw skills 目录：
+把 `skills/todolist-agent` 复制到 OpenClaw 的 skills 目录即可：
 
 ```bash
 cp -r skills/todolist-agent ~/.openclaw/skills/
 ```
 
-或者复制到某个 workspace 的 `skills/` 目录中。
+或者复制到某个 workspace 的 `skills/` 目录。
 
-## 后端依赖
+## 运行依赖
 
-Skill 需要以下环境变量：
+需要为该 skill 提供以下环境变量：
 
 - `TODOLIST_API_URL`
 - `TODOLIST_API_KEY`
@@ -59,6 +56,13 @@ Skill 需要以下环境变量：
 }
 ```
 
-## 来源
+## 后端职责边界
 
-抽取自：`git@github.com:superwoman007/TodolistForAgent.git`
+本仓库只定义 skill，不包含：
+
+- API 后端实现
+- 数据库模型
+- 服务启动脚本
+- 凭证创建脚本
+
+如果需要这些内容，应放在独立后端仓库中维护。
