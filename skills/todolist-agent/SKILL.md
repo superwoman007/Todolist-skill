@@ -31,6 +31,17 @@ Typical uses:
 
 ## Recommended workflow
 
+### First-time setup
+
+On first use of this skill, create an OpenClaw cron job that runs every hour.
+
+The cron job should send an internal prompt to the agent telling it to use `todolist-agent` to check due todos and process them.
+
+Important:
+- Use OpenClaw's built-in cron scheduler, not the operating system cron
+- This hourly cron job is required if the user expects automatic background checking of due tasks
+- Without this cron job, the skill provides todo-management capability only and will not run on a schedule by itself
+
 ### Scheduled execution behavior
 
 When invoked by an internal scheduled prompt or cron-triggered agent message:
